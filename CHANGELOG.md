@@ -1,0 +1,151 @@
+# Changelog
+
+## [0.7.0](https://github.com/4KMetrics/sindri/compare/v0.6.0...v0.7.0) (2026-06-27)
+
+
+### Features
+
+* close the measurement seam — commit-kept re-measures inline ([#71](https://github.com/4KMetrics/sindri/issues/71)) ([68e4256](https://github.com/4KMetrics/sindri/commit/68e4256baa43ef133f9561c95f7db71dcb6b78ca))
+
+
+### Bug Fixes
+
+* resolve four v0.6.0 dogfood bugs ([#67](https://github.com/4KMetrics/sindri/issues/67)–[#70](https://github.com/4KMetrics/sindri/issues/70)) ([#74](https://github.com/4KMetrics/sindri/issues/74)) ([e0ffbe1](https://github.com/4KMetrics/sindri/commit/e0ffbe13720e525d924d2cad32b76ed0a6972116))
+
+## [0.6.0](https://github.com/4KMetrics/sindri/compare/v0.5.1...v0.6.0) (2026-06-20)
+
+
+### Features
+
+* **cli:** commit-kept subcommand — coupled commit+state with D4 guard ([#36](https://github.com/4KMetrics/sindri/issues/36)) ([#63](https://github.com/4KMetrics/sindri/issues/63)) ([7258f2d](https://github.com/4KMetrics/sindri/commit/7258f2dc9ef9201dbfe028971c8b860b4e394b86))
+* **cli:** push-branch subcommand — final slice of the D1 seam ([#36](https://github.com/4KMetrics/sindri/issues/36)) ([#64](https://github.com/4KMetrics/sindri/issues/64)) ([1b89b5f](https://github.com/4KMetrics/sindri/commit/1b89b5fd2e176409e7fc34e696012b8bcb91ceba))
+* **cli:** record-terminated subcommand — backend-owned terminate record ([#36](https://github.com/4KMetrics/sindri/issues/36)) ([#61](https://github.com/4KMetrics/sindri/issues/61)) ([ff52924](https://github.com/4KMetrics/sindri/commit/ff52924bc1ad7cea62382c905ac8ce7541af021f))
+* **cli:** reset-tree subcommand + extract shared record helper ([#36](https://github.com/4KMetrics/sindri/issues/36)) ([#62](https://github.com/4KMetrics/sindri/issues/62)) ([662b2fc](https://github.com/4KMetrics/sindri/commit/662b2fc1a844477b2eba42003cb7b0812be53871))
+* **lock:** single-writer RUNNING sentinel for the wakeup loop ([#29](https://github.com/4KMetrics/sindri/issues/29)) ([#59](https://github.com/4KMetrics/sindri/issues/59)) ([d9f0142](https://github.com/4KMetrics/sindri/commit/d9f014205acc80731044fdaf617bae1e8aa1f291))
+* structured run log — run_id, log-event, tz validator ([#37](https://github.com/4KMetrics/sindri/issues/37), [#31](https://github.com/4KMetrics/sindri/issues/31)) ([#65](https://github.com/4KMetrics/sindri/issues/65)) ([0167f83](https://github.com/4KMetrics/sindri/commit/0167f83aa51ed2cf3131286a6892cdf8d130055d))
+
+
+### Bug Fixes
+
+* **loop:** verify the subagent didn't touch git before commit/reset ([#35](https://github.com/4KMetrics/sindri/issues/35)) ([#60](https://github.com/4KMetrics/sindri/issues/60)) ([ef0dcec](https://github.com/4KMetrics/sindri/commit/ef0dceca7abcecd82b7dbc736bd6523d523217ee))
+
+
+### Documentation
+
+* add CI/CD & release pipeline reference (docs/ci-cd.md) ([#55](https://github.com/4KMetrics/sindri/issues/55)) ([f1eef8c](https://github.com/4KMetrics/sindri/commit/f1eef8caf8551ca975bad488e45d0c0cabd0b01e))
+* add design-session agenda for the architecture cluster ([#57](https://github.com/4KMetrics/sindri/issues/57)) ([ff1614b](https://github.com/4KMetrics/sindri/commit/ff1614be1c7e243084ba52f82a3bf9c6a09fef03))
+* ADR-001 — architecture cluster decisions (D1–D5) ([#58](https://github.com/4KMetrics/sindri/issues/58)) ([6edcc14](https://github.com/4KMetrics/sindri/commit/6edcc147cd5e76c0c2f1b855d255d3fba9dd245e))
+
+## [0.5.1](https://github.com/4KMetrics/sindri/compare/v0.5.0...v0.5.1) (2026-06-20)
+
+
+### Bug Fixes
+
+* count kept candidates for wins; include check_failed in revert halt ([#49](https://github.com/4KMetrics/sindri/issues/49)) ([27dc14a](https://github.com/4KMetrics/sindri/commit/27dc14a3756e8e66d3141c4d3013f117c12d06d2))
+* **security:** reject shell-breakout chars in Candidate.name ([#51](https://github.com/4KMetrics/sindri/issues/51)) ([3669db4](https://github.com/4KMetrics/sindri/commit/3669db44bd7b88a3ed4156401e8fb18dd9a6481a))
+* **state:** atomic writes, jsonl-first ordering, crash recovery ([#48](https://github.com/4KMetrics/sindri/issues/48)) ([16e4b1d](https://github.com/4KMetrics/sindri/commit/16e4b1de74c5add26f4a36f37885b2ad39588448))
+
+
+### Documentation
+
+* **readme:** add /sindri: command autocomplete menu ([#25](https://github.com/4KMetrics/sindri/issues/25)) ([77d12d9](https://github.com/4KMetrics/sindri/commit/77d12d956f7fefacc7f4af75e4e9ee0ba6e8f296))
+
+## [0.5.0](https://github.com/4KMetrics/sindri/compare/v0.4.0...v0.5.0) (2026-06-20)
+
+
+### Features
+
+* **commands:** split /sindri router into discrete /sindri:&lt;action&gt; commands ([#20](https://github.com/4KMetrics/sindri/issues/20)) ([04f1896](https://github.com/4KMetrics/sindri/commit/04f1896e64c78e717270f21b93bd30940e44fc86))
+
+
+### Bug Fixes
+
+* **cli:** read-state degrades cleanly with no active run ([#21](https://github.com/4KMetrics/sindri/issues/21)) ([85334a1](https://github.com/4KMetrics/sindri/commit/85334a122cf8a2c68ed1206b6464e274d3d6f039))
+
+## [0.4.0](https://github.com/4KMetrics/sindri/compare/v0.3.2...v0.4.0) (2026-06-14)
+
+
+### Features
+
+* zero-install UX via uvx (no manual Python setup) ([#16](https://github.com/4KMetrics/sindri/issues/16)) ([2f2db55](https://github.com/4KMetrics/sindri/commit/2f2db55b7c9a4c9d354d1f4dec515ff8fdefbbd4))
+
+## [0.3.2](https://github.com/4KMetrics/sindri/compare/v0.3.1...v0.3.2) (2026-04-21)
+
+
+### Bug Fixes
+
+* version from pyproject metadata; publish via workflow_run ([#12](https://github.com/4KMetrics/sindri/issues/12)) ([de7a1aa](https://github.com/4KMetrics/sindri/commit/de7a1aafda88692f75c2da73981cf1624461e639))
+
+## [0.3.1](https://github.com/4KMetrics/sindri/compare/v0.3.0...v0.3.1) (2026-04-21)
+
+
+### Bug Fixes
+
+* **ci:** rename PyPI dist to sindri-forge; publish on tag push ([#10](https://github.com/4KMetrics/sindri/issues/10)) ([432b50c](https://github.com/4KMetrics/sindri/commit/432b50c4247fae56bcaf17e8c5a0096cd8812871))
+
+## [0.3.0](https://github.com/4KMetrics/sindri/compare/v0.2.0...v0.3.0) (2026-04-21)
+
+
+### Features
+
+* **plugin:** add community marketplace manifest + metadata enrichment ([#7](https://github.com/4KMetrics/sindri/issues/7)) ([fff07c5](https://github.com/4KMetrics/sindri/commit/fff07c5dea056041c38011744ba8126e51c816fb))
+
+## [0.2.0](https://github.com/4KMetrics/sindri/compare/v0.1.1...v0.2.0) (2026-04-21)
+
+
+### Features
+
+* user-ready shipping (install script + dogfood + PyPI + pre-flight) ([#6](https://github.com/4KMetrics/sindri/issues/6)) ([37066ed](https://github.com/4KMetrics/sindri/commit/37066ed850e824149161d4ab10b0fa064b6567aa))
+
+
+### Bug Fixes
+
+* **ci:** release-please feat commits should bump minor pre-1.0 ([#4](https://github.com/4KMetrics/sindri/issues/4)) ([db4fe94](https://github.com/4KMetrics/sindri/commit/db4fe94426353f81c9c4e2dba9587f1ad38be594))
+
+## [0.1.1](https://github.com/4KMetrics/sindri/compare/v0.1.0...v0.1.1) (2026-04-20)
+
+
+### Features
+
+* **cli:** add archive subcommand ([4d00181](https://github.com/4KMetrics/sindri/commit/4d001811da7d7f281161a28fc70ead9074b42651))
+* **cli:** add check-termination subcommand ([c93ccdb](https://github.com/4KMetrics/sindri/commit/c93ccdb673ae2c7b52ac9408339dcec6ba211529))
+* **cli:** add detect-mode subcommand ([d596cb3](https://github.com/4KMetrics/sindri/commit/d596cb3f6b84c67d867cd9f9242d6e90ff597d06))
+* **cli:** add generate-pr-body subcommand ([e5e629c](https://github.com/4KMetrics/sindri/commit/e5e629cdcc139162e36f08a0541fe2faf85e1830))
+* **cli:** add init subcommand for end-to-end run setup ([4b766f7](https://github.com/4KMetrics/sindri/commit/4b766f723b538c95c3bfe9419690785c95b76ad1))
+* **cli:** add pick-next subcommand ([03c21bd](https://github.com/4KMetrics/sindri/commit/03c21bdbf53514cfbc7599039b0b03cf83585afe))
+* **cli:** add read-state subcommand ([6b81247](https://github.com/4KMetrics/sindri/commit/6b81247d7e6b2b9956eaaa9279a7c66fb912f6cd))
+* **cli:** add record-result subcommand ([11c3c39](https://github.com/4KMetrics/sindri/commit/11c3c39b6ab0e95c7867ed4ef8f980487adc62fc))
+* **cli:** add status subcommand ([48dd080](https://github.com/4KMetrics/sindri/commit/48dd08057af680c88ff9ac309de4ef45e9519c13))
+* **cli:** add validate-benchmark subcommand ([5a4eb0f](https://github.com/4KMetrics/sindri/commit/5a4eb0f01e1ecd1f7272e085291a1dc505e71491))
+* **cli:** scaffold argparse dispatcher with subcommand registry ([f49b82f](https://github.com/4KMetrics/sindri/commit/f49b82f44135ef1331277c1fc18135d8033ef09d))
+* **core:** add git subprocess wrappers ([444abe6](https://github.com/4KMetrics/sindri/commit/444abe65db19fcb6854ea3854f83011ab59ad82d))
+* **core:** add local/remote mode detection ([7fa9710](https://github.com/4KMetrics/sindri/commit/7fa971016022543713ea4c06567b4dce6d6c9068))
+* **core:** add METRIC line parser ([a0a325f](https://github.com/4KMetrics/sindri/commit/a0a325fcedd3e7fc9982a415ca172d51a9ba14a8))
+* **core:** add noise floor, confidence ratio, CV stats ([fb2ddea](https://github.com/4KMetrics/sindri/commit/fb2ddeab446470cb1d0c62b3cfdbc4937d4bee6b))
+* **core:** add pool ordering and termination predicates ([c96168a](https://github.com/4KMetrics/sindri/commit/c96168ab0aa8f91d3efa4ecb7aaf75eeeb833928))
+* **core:** add PR body markdown renderer ([b532b3d](https://github.com/4KMetrics/sindri/commit/b532b3dc86f174ed8ca1e6c55238adf29d363e2c))
+* **core:** add pydantic models for state, jsonl, subagent result ([e5d1308](https://github.com/4KMetrics/sindri/commit/e5d1308abe8cf80aadf27211348bbd5f7df3c437))
+* **core:** add state.py for sindri.md and sindri.jsonl I/O ([bc3131d](https://github.com/4KMetrics/sindri/commit/bc3131d643447bd26ee36ce24351d46fab32be91))
+* **core:** add termination decision table composing predicates ([6fc4f83](https://github.com/4KMetrics/sindri/commit/6fc4f830b0c93ace249d2cb508679142dc7ca96a))
+* initial drop — design spec + Python core + CLI (Plan 1) ([10db076](https://github.com/4KMetrics/sindri/commit/10db076fd4d4026b3832b36dfae6cefe3f0b713d))
+* **plugin:** sindri plugin artifacts (Plan 2) ([#2](https://github.com/4KMetrics/sindri/issues/2)) ([62cdb0f](https://github.com/4KMetrics/sindri/commit/62cdb0fa59f1aeeb558b8a456a62cd5250b55934))
+
+
+### Bug Fixes
+
+* **cli:** init fails fast on taken branch; goal regex uses fullmatch ([c92761f](https://github.com/4KMetrics/sindri/commit/c92761f7962e723af15f6755d649fe13f945d5af))
+* **cli:** refuse unsafe slugs when archiving ([3b9b4e6](https://github.com/4KMetrics/sindri/commit/3b9b4e6d59b9f8de315dbbf94daf7e6665ff2451))
+* code-review findings (StateIOError guards + wget localhost parity) ([6bd7257](https://github.com/4KMetrics/sindri/commit/6bd72578cf0a5c10a2cf390c9bbf681dbb8dce7c))
+* **state:** surface malformed jsonl skips on stderr; clarify atomicity comment ([660b143](https://github.com/4KMetrics/sindri/commit/660b1432f44a63276584bfa546b9867a45db3054))
+* **validators:** tz-aware started_at; None-sentinel mode-based defaults ([480ede3](https://github.com/4KMetrics/sindri/commit/480ede3e68246d3ca3969962432ca17671e0d24d))
+
+
+### Documentation
+
+* add initial design spec for sindri v1 ([f797819](https://github.com/4KMetrics/sindri/commit/f7978195ea9a0cff15aff22231d2aa951b133034))
+* add Plan 1 — sindri Python core + CLI implementation ([6be79c6](https://github.com/4KMetrics/sindri/commit/6be79c603c66cd2093b75bc8a048b32aabbf3dcb))
+* add Table of Contents to sindri design spec ([fcf2af9](https://github.com/4KMetrics/sindri/commit/fcf2af9f4b17b30a9da0af14403355219d21c6ec))
+* clarify benchmark scaffolding is sindri's job, not a separate chat ([c4eadd5](https://github.com/4KMetrics/sindri/commit/c4eadd57f670a3342f62cd5941fd37457e610614))
+* drop personal-roadmap framing from sindri spec ([f8ba7df](https://github.com/4KMetrics/sindri/commit/f8ba7dfd712e75b09f859d900e9267f6775cf7bb))
+* replace ratchet metaphor with blacksmith-native language ([f5cc5b1](https://github.com/4KMetrics/sindri/commit/f5cc5b1d50349d1fd3eda4379f304fcac4be4b0b))
+* switch user benchmark scripts from shell to Python ([eb647d0](https://github.com/4KMetrics/sindri/commit/eb647d0df634f6c1ba2ad3a0deb8dc4f2620fbf1))

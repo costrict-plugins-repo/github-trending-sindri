@@ -1,0 +1,107 @@
+---
+name: sindri-finalize
+description: Auto-invoked by sindri-loop on clean termination with ≥1 kept commit. Generates the PR body, pushes the branch, opens a PR via gh, surfaces the URL, and archives the current run. A manual /sindri:finalize (advanced/debug) can force a PR from current kept commits; otherwise do not invoke directly.
+tools: Bash, Read
+---
+
+# sindri-finalize — ship the run as a PR
+
+You are the last skill in the lifecycle. You run only when the orchestrator has cleanly terminated AND at least one experiment was kept. Your job is fast (<30s), linear, and has no user interaction.
+
+Resolve `FORGE` to this plugin's `scripts/forge.sh` (this skill lives at `<plugin-root>/skills/sindri-finalize/SKILL.md`, so the wrapper is `<plugin-root>/scripts/forge.sh`). Backend calls below use `"$FORGE" <cmd>`.
+
+## Steps
+
+### 0. Re-validate the kept stack (final independent measurement)
+
+Each keep was independently verified at its own wakeup (step 6b of the loop). As a last guard against accumulated lucky-noise keeps, re-measure the **branch tip** once with the trusted benchmark and compare to the **original baseline**:
+
+```bash
+TIP=$("$FORGE" validate-benchmark --script <benchmark path> --expected <metric_name> \
+  | python3 -c "import json,sys; print(json.load(sys.stdin)['metric_value'])")
+```
+
+Read `baseline.value`, `current_best`, and `goal.direction` from `sindri.md`. The tip must beat the baseline in the goal direction (reduce → `TIP < baseline`; increase → `TIP > baseline`) and be consistent with the recorded `current_best`.
+
+- **Holds up** → record the verified end-to-end delta and continue; include `TIP` (independently re-measured) in the PR body and the step-5 summary so the shipped number is one nobody self-reported.
+- **Does NOT hold up** (tip fails to beat baseline, or contradicts `current_best`) → **HALT finalize (jidoka).** Print: *"sindri: final re-validation FAILED — branch tip measured `<TIP>` vs baseline `<baseline>` (`current_best` was `<cb>`). Not opening a PR for a result that doesn't reproduce. State preserved in `.sindri/current/`; investigate (noise, non-determinism, or a benchmark change)."* Do not push, do not open a PR.
+
+### 1. Generate the PR body
+
+```bash
+"$FORGE" generate-pr-body > .sindri/current/pr-body.md
+```
+
+The Python core renders the body from `sindri.md` frontmatter + `sindri.jsonl` history — goal, baseline → final, per-commit table, dead-ends, summary stats.
+
+### 2. Push the branch
+
+Push the run branch via the backend (it reads the branch from state, verifies you're on it, and runs `git push -u origin` — you don't run raw git):
+
+```bash
+"$FORGE" push-branch
+```
+
+If push-branch exits non-zero (auth expired, remote missing, branch already on remote with divergent history, or you're not on the run branch):
+
+- Print: *"sindri: HALTED during finalize. `git push` failed — <stderr>. State preserved. Re-run `/sindri:finalize` after fixing, and it will retry from the same state."*
+- STOP. Do not retry destructively. Do not delete or rewrite history.
+
+### 3. Compose the PR title
+
+Read the goal from `sindri.md` frontmatter. Derive a conventional-commit-style title:
+
+- `reduce bundle_bytes by 15%` → `perf: reduce bundle_bytes (−15.2%)`
+- `increase test coverage by 10%` → `test: increase coverage (+10.4%)`
+- `reduce ci_seconds by 20%` → `perf: reduce CI time (−21.3%)`
+
+Use the **actual** observed delta (from `current_best` vs `baseline`), not the target.
+
+### 4. Open the PR
+
+```bash
+TITLE="<composed title>"
+gh pr create \
+  --base main \
+  --head "<branch>" \
+  --title "$TITLE" \
+  --body-file .sindri/current/pr-body.md
+```
+
+If `gh pr create` fails:
+
+- Print: *"sindri: branch pushed to origin, but PR creation failed — <stderr>. Open the PR manually with `gh pr create --base main --body-file .sindri/current/pr-body.md` or via the GitHub UI."*
+- Do not halt finalize beyond this — the branch is pushed; user can recover.
+
+### 5. Capture + surface the PR URL
+
+```bash
+PR_URL=$(gh pr view --json url -q .url)
+```
+
+Print a clean actionable block:
+
+```
+✓ sindri: PR opened — <PR_URL>
+
+<N> kept commits, <M> reverted, final Δ<signed>%, target Δ<target>%
+Baseline: <baseline value>  →  Final: <current_best value>
+Wall clock: <human-readable duration>
+
+Run archived: .sindri/archive/<date>-<slug>/
+```
+
+### 6. Archive the run
+
+```bash
+"$FORGE" archive
+```
+
+This moves `.sindri/current/` → `.sindri/archive/<YYYY-MM-DD>-<goal-slug>/`. After this, a fresh `/sindri:forge <goal>` is permitted.
+
+## Anti-patterns
+
+- **Never retry `git push` with `--force`.** Force-pushing a sindri branch destroys the history sindri wrote; the PR body would become inconsistent with origin.
+- **Never amend or rewrite kept commits.** Each kept commit is part of the audit log. `git rebase -i` is off-limits in this skill.
+- **Never archive before push + PR succeed.** Archive is the last step; it implies "this run is shippable and shipped."
+- **Never delete the local branch.** The user may want to check it out. `/sindri:clear` is the only path to branch deletion.

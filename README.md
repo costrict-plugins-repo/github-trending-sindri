@@ -1,0 +1,115 @@
+# sindri
+
+A Claude Code plugin for bounded, target-driven optimization loops.
+
+> In the myth, Sindri is the dwarf smith who forged Mjölnir by iterating under adversity — each hammer-strike tested, kept only if it survived. This plugin is the same pattern: make a change, benchmark it, keep it **only if an independent re-measurement confirms it's better**, revert otherwise, repeat until the target is hit or the pool of ideas is exhausted.
+
+Inspired by [karpathy/autoresearch](https://github.com/karpathy/autoresearch) and [davebcn87/pi-autoresearch](https://github.com/davebcn87/pi-autoresearch), adapted to Claude Code.
+
+**One commit per kept experiment. Git is the audit log. The forge runs one way.**
+
+## Install
+
+```text
+/plugin install sindri@claude-community
+/reload-plugins            # or relaunch Claude Code; commands are then live
+```
+
+Then, in any repo you want to optimize:
+
+```text
+/sindri:forge reduce bundle_bytes by 15%
+```
+
+That's it. No `pip install`, no virtualenv. The Python backend (`sindri-forge`)
+is fetched on demand by [`uv`](https://docs.astral.sh/uv/). If `uv` isn't
+installed, `/sindri:forge` prints a one-line install command and stops.
+
+> Sindri is published in the Anthropic community marketplace
+> (`anthropics/claude-plugins-community`). If you haven't added it yet:
+> `/plugin marketplace add anthropics/claude-plugins-community`.
+
+Requirements:
+
+- [`uv`](https://docs.astral.sh/uv/getting-started/installation/) — runs the backend in an isolated environment
+- `git` ≥ 2.30
+- `gh` CLI (authenticated) — needed only for `sindri-finalize` PR creation
+- Claude Code with `Task` + `ScheduleWakeup` tools
+
+**First-run dogfood:** walk through [`docs/DOGFOOD.md`](docs/DOGFOOD.md) on a throwaway repo before pointing sindri at real code — it verifies every skill path and catches environment gaps before you commit an overnight run.
+
+## Quickstart
+
+```bash
+# In the repo you want to optimize:
+/sindri:forge reduce bundle_bytes by 15%
+```
+
+Sindri will:
+
+1. Scaffold `.claude/scripts/sindri/benchmark.py` if missing (interactive; asks you to describe the measurement in natural language).
+2. Scan your repo and draft a pool of 10–30 candidates.
+3. Ask you to approve / edit the pool.
+4. Check out a new branch `sindri/reduce-bundle-bytes-15pct` and run the baseline 3×.
+5. Loop autonomously — one experiment per wakeup, ~60s between them.
+6. When the target hits (or the pool drains with ≥1 win), push the branch and open a PR.
+
+Check in anytime with `/sindri:status`. Halt with `/sindri:stop`. Abandon with `/sindri:clear`.
+
+## Commands
+
+Type `/sindri:` in Claude Code and every action is right there in the autocomplete menu — eight
+discrete, self-describing commands (no router, no guessing which sub-verb exists):
+
+```text
+> /sindri:
+  /sindri:forge     <goal statement>   Start a new optimization run from a goal — bounded,
+                                        target-driven experiments on any deterministic metric.
+  /sindri:status                       Print the status of the current run (or report none active).
+  /sindri:stop                         Signal the current run to halt at its next wakeup.
+  /sindri:clear                        Abandon the current run — destructive; deletes state + branch.
+  /sindri:setup                        Scaffold or repair the benchmark script for a run.
+  /sindri:help                         Show the command list and a one-line overview of each.
+  /sindri:loop                         ADVANCED. Run one orchestrator tick manually, no reschedule.
+  /sindri:finalize                     ADVANCED. Force a push + PR from the run's kept commits.
+```
+
+`forge`, `status`, `stop`, `clear`, `setup`, and `help` cover the normal lifecycle. `loop` and
+`finalize` are advanced/debug paths — the orchestrator runs them automatically during a live run.
+
+## Architecture
+
+- **Python core** (`src/sindri/`) — pure functions: statistics, state file I/O, git wrappers, pool ordering, termination predicates, PR body rendering.
+- **Skills** (`skills/sindri-*/SKILL.md`) — prose prompts for the decisions that need Claude's inference: scaffolding a benchmark, proposing a candidate pool, orchestrating the loop.
+- **Subagent prompt** (`prompts/experiment-subagent.md`) — the contract every experiment subagent follows. Fresh context per experiment, no context bleed.
+- **Measurement integrity** — a keep is committed on a re-measurement the backend runs *itself* (the trusted, tracked benchmark, in an isolated worktree), never the experiment agent's self-report. The agent proposes a win; vetted code certifies it.
+
+See [`docs/superpowers/specs/2026-04-19-sindri-design.md`](docs/superpowers/specs/2026-04-19-sindri-design.md) for the full design, and [`docs/security.md`](docs/security.md) for the secret-scanning / leak-prevention setup.
+
+## Development
+
+```bash
+uv pip install -e ".[dev]"
+pytest                                            # all test layers
+pytest -m "not e2e" -q                            # skip the slow end-to-end loop test
+pytest tests/unit/test_plugin_artifacts.py -v     # just artifact validity checks
+./scripts/smoke.sh                                # plumbing smoke in a throwaway repo
+```
+
+### Local plugin install (contributors)
+
+```bash
+git clone https://github.com/4KMetrics/sindri.git ~/src/sindri
+cd ~/src/sindri && ./scripts/install-plugin.sh   # symlinks the plugin only
+```
+
+To test local backend edits (instead of the published package), point the
+launcher at your checkout before running `/sindri:forge`:
+
+```bash
+export SINDRI_FORGE_SOURCE="$(pwd)"
+```
+
+## License
+
+MIT

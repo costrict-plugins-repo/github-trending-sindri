@@ -1,0 +1,21 @@
+{
+  "name": "sindri",
+  "description": "Bounded, target-driven optimization loops for any metric you can measure deterministically. Autonomous experiments, kept-or-reverted per git commit, auto-PR on success.",
+  "version": "0.7.0",
+  "author": {
+    "name": "4KMetrics",
+    "email": "260103116+4kmetrics@users.noreply.github.com"
+  },
+  "homepage": "https://github.com/4KMetrics/sindri",
+  "repository": "https://github.com/4KMetrics/sindri",
+  "license": "MIT",
+  "keywords": [
+    "optimization",
+    "benchmarking",
+    "autonomous",
+    "experiments",
+    "performance",
+    "ci",
+    "bundle-size"
+  ]
+}

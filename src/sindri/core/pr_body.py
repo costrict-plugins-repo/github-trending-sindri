@@ -1,0 +1,131 @@
+"""Render the PR description markdown from state + jsonl records.
+
+This is the main user-facing artifact of a successful run. Structure:
+
+    Title summary
+    Result block (baseline → final, delta%, target hit or not)
+    Kept commits table
+    Dead-ends section (reverted + failed)
+    Run stats (experiments, wall-clock, mode, noise floor)
+"""
+from __future__ import annotations
+
+from sindri.core.validators import (
+    JsonlExperiment,
+    JsonlRecord,
+    JsonlTerminated,
+    SindriState,
+)
+
+
+def render_pr_body(state: SindriState, records: list[JsonlRecord]) -> str:
+    """Assemble the PR body markdown."""
+    experiments = [r for r in records if isinstance(r, JsonlExperiment)]
+    terminated = next(
+        (r for r in reversed(records) if isinstance(r, JsonlTerminated)),
+        None,
+    )
+
+    # A zero noise floor means a deterministic benchmark — confidence_ratio is then
+    # a meaningless sentinel (delta / epsilon), so render it as ∞ rather than 1e10.
+    deterministic = state.baseline.noise_floor == 0
+
+    sections: list[str] = []
+    sections.append(_render_header(state, terminated))
+    sections.append(_render_result(state, terminated))
+    sections.append(_render_kept_table(experiments, deterministic))
+    sections.append(_render_dead_ends(experiments, deterministic))
+    sections.append(_render_run_stats(state, experiments, terminated))
+    sections.append(_render_footer())
+    return "\n\n".join(s for s in sections if s)
+
+
+def _render_header(state: SindriState, terminated: JsonlTerminated | None) -> str:
+    sign = "−" if state.goal.direction == "reduce" else "+"
+    title = f"perf: {state.goal.direction} {state.goal.metric_name}"
+    if terminated is not None:
+        title += f" ({sign}{abs(terminated.delta_pct):.1f}%)"
+    return f"## {title}\n\n*Autonomous optimization run by sindri.*"
+
+
+def _render_result(state: SindriState, terminated: JsonlTerminated | None) -> str:
+    lines = ["### Result\n"]
+    lines.append(f"- **Goal:** {state.goal.direction} `{state.goal.metric_name}` by **{state.goal.target_pct}%**")
+    lines.append(f"- **Baseline:** {state.baseline.value:,.0f}")
+    lines.append(f"- **Noise floor (σ):** {state.baseline.noise_floor:,.2f}")
+    if terminated is not None:
+        hit = "✓ target hit" if terminated.reason == "target_hit" else f"({terminated.reason})"
+        lines.append(
+            f"- **Final:** {terminated.final_metric:,.0f} "
+            f"({'−' if terminated.delta_pct < 0 else '+'}{abs(terminated.delta_pct):.2f}%) {hit}"
+        )
+    return "\n".join(lines)
+
+
+def _fmt_confidence(ratio: float, deterministic: bool) -> str:
+    """Render a confidence ratio. A deterministic benchmark (noise_floor 0) yields a
+    sentinel value (delta / epsilon); show ∞ instead of a meaningless 1e10."""
+    return "∞" if deterministic else f"{ratio:.1f}×"
+
+
+def _render_kept_table(experiments: list[JsonlExperiment], deterministic: bool) -> str:
+    kept = [e for e in experiments if e.status == "improved"]
+    if not kept:
+        return ""
+    lines = ["### Kept experiments\n"]
+    lines.append("| # | Candidate | Δ metric | Confidence | Commit | Files |")
+    lines.append("|---|---|---|---|---|---|")
+    for e in kept:
+        sha = f"`{e.commit_sha[:7]}`" if e.commit_sha else "-"
+        files = ", ".join(e.files_modified[:3]) + ("…" if len(e.files_modified) > 3 else "")
+        lines.append(
+            f"| {e.id} | {e.candidate} | {e.delta:+,.0f} | "
+            f"{_fmt_confidence(e.confidence_ratio, deterministic)} | {sha} | {files} |"
+        )
+    return "\n".join(lines)
+
+
+def _render_dead_ends(experiments: list[JsonlExperiment], deterministic: bool) -> str:
+    dead = [e for e in experiments if e.status != "improved"]
+    if not dead:
+        return ""
+    lines = ["### Dead ends (for transparency)\n"]
+    lines.append("Things that were tried but didn't land:\n")
+    for e in dead:
+        status_label = {
+            "regressed": "regressed",
+            "inconclusive": "inconclusive (below noise)",
+            "check_failed": "tests/lint failed",
+            "errored": "benchmark errored",
+            "timeout": "timed out",
+        }.get(e.status, e.status)
+        lines.append(
+            f"- **{e.candidate}** — {status_label} "
+            f"(Δ {e.delta:+,.0f}, conf {_fmt_confidence(e.confidence_ratio, deterministic)})"
+        )
+    return "\n".join(lines)
+
+
+def _render_run_stats(
+    state: SindriState,
+    experiments: list[JsonlExperiment],
+    terminated: JsonlTerminated | None,
+) -> str:
+    lines = ["### Run stats\n"]
+    lines.append(f"- **Mode:** {state.mode}")
+    lines.append(f"- **Experiments run:** {len(experiments)} (of {len(state.pool)} in pool)")
+    if terminated is not None:
+        lines.append(
+            f"- **Kept:** {terminated.kept} · **Reverted:** {terminated.reverted} "
+            f"· **Errored:** {terminated.errored}"
+        )
+        lines.append(
+            f"- **Wall-clock:** {terminated.wall_clock_seconds}s "
+            f"({terminated.wall_clock_seconds // 60}m)"
+        )
+    lines.append(f"- **Branch:** `{state.branch}`")
+    return "\n".join(lines)
+
+
+def _render_footer() -> str:
+    return "---\n\n*Generated by [sindri](https://github.com/4KMetrics/sindri). Review the commit history for per-experiment details.*"
